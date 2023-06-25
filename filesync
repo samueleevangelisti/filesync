@@ -6,7 +6,6 @@ import sys
 import json
 import click
 
-import versions
 from utils import logs
 from utils import utils
 from classes.filesyncconfigs import FilesyncConfigs
@@ -16,7 +15,6 @@ from classes.filesyncconnectorftp import FilesyncConnectorFtp
 
 
 @click.command()
-@click.option('--version', type=bool, default=False, show_default=True, is_flag=True, help='Show the version')
 @click.option('--is_init', type=bool, default=False, show_default=True, is_flag=True, help='Create the base configuration file')
 @click.option('--no_delete', type=bool, default=False, show_default=True, is_flag=True, help='Disable entry deletion')
 @click.option('--is_dual', type=bool, default=False, show_default=True, is_flag=True, help='Copy in source the file in destination if it is newer than the one in source')
@@ -26,15 +24,10 @@ from classes.filesyncconnectorftp import FilesyncConnectorFtp
 @click.option('--ftp_port', type=int, default=21, show_default=True, help='Ftp server port')
 @click.option('--ftp_user', type=str, default=None, show_default=True, help='Ftp user')
 @click.option('--ftp_password', type=str, default=None, show_default=True, help='Ftp password')
-def _main(version, is_init, no_delete, is_dual, source_path, destination_path, ftp_host, ftp_port, ftp_user, ftp_password):
-    logs.debug(f"(filesync._main) version: {version}, is_init: {is_init}, no_delete: {no_delete}, is_dual: {is_dual}, source_path: {source_path}, destination_path: {destination_path}, ftp_host: {ftp_host}, ftp_port: {ftp_port}, ftp_user: {ftp_user}, ftp_password: {ftp_password}")
-    is_version = version
+def _main(is_init, no_delete, is_dual, source_path, destination_path, ftp_host, ftp_port, ftp_user, ftp_password):
+    logs.debug(f"(filesync._main) is_init: {is_init}, no_delete: {no_delete}, is_dual: {is_dual}, source_path: {source_path}, destination_path: {destination_path}, ftp_host: {ftp_host}, ftp_port: {ftp_port}, ftp_user: {ftp_user}, ftp_password: {ftp_password}")
     is_delete = not no_delete
     is_ftp = bool(ftp_host)
-
-    if is_version:
-        print(versions.VERSION)
-        sys.exit(0)
 
     if not destination_path:
         logs.print_red('Missing destination path')
