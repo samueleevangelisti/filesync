@@ -15,22 +15,27 @@ from classes.filesyncconnectorftp import FilesyncConnectorFtp
 
 
 @click.command()
-@click.option('--is-init', type=bool, default=False, show_default=True, is_flag=True, help='Create the base configuration file.')
-@click.option('--no-delete', type=bool, default=False, show_default=True, is_flag=True, help='Disable entry deletion.')
-@click.option('--is-dual', type=bool, default=False, show_default=True, is_flag=True, help='Copy in source the file in destination if it is newer than the one in source.')
-@click.option('--ftp-host', type=str, default=None, show_default=True, help='Ftp server for destination.')
-@click.option('--ftp-port', type=int, default=21, show_default=True, help='Ftp server port.')
-@click.option('--ftp-user', type=str, default=None, show_default=True, help='Ftp user.')
-@click.option('--ftp-password', type=str, default=None, show_default=True, help='Ftp password.')
+@click.option('-i', '--init', 'is_init', type=bool, default=False, show_default=True, is_flag=True, help='Create the base configuration file.')
+@click.option('-nd', '--no-delete', 'no_delete', type=bool, default=False, show_default=True, is_flag=True, help='Disable entry deletion.')
+@click.option('-d', '--dual', 'is_dual', type=bool, default=False, show_default=True, is_flag=True, help='Copy in source the file in destination if it is newer than the one in source.')
+@click.option('-sftph', '--source-ftp-host', 'source_ftp_host', type=str, default=None, show_default=True, help='Ftp server for source.')
+@click.option('-sftpp', '--source-ftp-port', 'source_ftp_port', type=int, default=21, show_default=True, help='Ftp server port for source.')
+@click.option('-sftpu', '--source-ftp-user', 'source_ftp_user', type=str, default=None, show_default=True, help='Ftp user for source.')
+@click.option('-sftpp', '--source-ftp-password', 'source_ftp_password', type=str, default=None, show_default=True, help='Ftp password for source.')
+@click.option('-dftph', '--destination-ftp-host', 'destination_ftp_host', type=str, default=None, show_default=True, help='Ftp server for destination.')
+@click.option('-dftpp', '--destination-ftp-port', 'destination_ftp_port', type=int, default=21, show_default=True, help='Ftp server port for destination.')
+@click.option('-dftpu', '--destination-ftp-user', 'destination_ftp_user', type=str, default=None, show_default=True, help='Ftp user for destination.')
+@click.option('-dftpp', '--destination-ftp-password', 'destination_ftp_password', type=str, default=None, show_default=True, help='Ftp password for destination.')
 @click.argument('path-1', type=str, default='.')
 @click.argument('path-2', type=str, default='')
-def _main(is_init, no_delete, is_dual, ftp_host, ftp_port, ftp_user, ftp_password, path_1, path_2):
+def _main(is_init, no_delete, is_dual, source_ftp_host, source_ftp_port, source_ftp_user, source_ftp_password, destination_ftp_host, destination_ftp_port, destination_ftp_user, destination_ftp_password, path_1, path_2):
     '''
     Sync PATH-2 with PATH-1. If PATH-2 is not specified, sync PATH-1 using the filesync-configs.json file. If no PATH-* is specified, sync the current folder using the filesync-configs.json file.
     '''
-    logs.debug(f"(filesync._main) is_init: {is_init}, no_delete: {no_delete}, is_dual: {is_dual}, ftp_host: {ftp_host}, ftp_port: {ftp_port}, ftp_user: {ftp_user}, ftp_password: {ftp_password}, path_1: {path_1}, path_2: {path_2}")
+    logs.debug(f"(filesync._main) is_init: {is_init}, no_delete: {no_delete}, is_dual: {is_dual}, source_ftp_host: {source_ftp_host}, source_ftp_port: {source_ftp_port}, source_ftp_user: {source_ftp_user}, source_ftp_password: {source_ftp_password}, destination_ftp_host: {destination_ftp_host}, destination_ftp_port: {destination_ftp_port}, destination_ftp_user: {destination_ftp_user}, destination_ftp_password: {destination_ftp_password}, path_1: {path_1}, path_2: {path_2}")
     is_delete = not no_delete
-    is_ftp = bool(ftp_host)
+    is_source_ftp = bool(source_ftp_host)
+    is_destination_ftp = bool(destination_ftp_host)
     source_path = path_1
     destination_path = path_2
 
@@ -38,8 +43,8 @@ def _main(is_init, no_delete, is_dual, ftp_host, ftp_port, ftp_user, ftp_passwor
         source_path = None
         destination_path = path_1
 
-    if is_ftp:
-        filesync_connector_destination = FilesyncConnectorFtp(destination_path, ftp_host, ftp_port, ftp_user, ftp_password)
+    if is_destination_ftp:
+        filesync_connector_destination = FilesyncConnectorFtp(destination_path, destination_ftp_host, destination_ftp_port, destination_ftp_user, destination_ftp_password)
     else:
         filesync_connector_destination = FilesyncConnectorLocal(destination_path)
 
@@ -72,7 +77,10 @@ def _main(is_init, no_delete, is_dual, ftp_host, ftp_port, ftp_user, ftp_passwor
     filesync_configs.rename_dict_folder = {filesync_connector_destination.resolve_path(key): filesync_connector_destination.resolve_path(value) for key, value in filesync_configs.rename_dict_folder.items()}
     filesync_configs.rename_dict_file = {filesync_connector_destination.resolve_path(key): filesync_connector_destination.resolve_path(value) for key, value in filesync_configs.rename_dict_file.items()}
 
-    filesync_connector_source = FilesyncConnectorLocal(source_path)
+    if is_source_ftp:
+        filesync_connector_source = FilesyncConnectorFtp(source_path, source_ftp_host, source_ftp_port, source_ftp_user, source_ftp_password)
+    else:
+        filesync_connector_source = FilesyncConnectorLocal(source_path)
 
     if source_path:
         if not filesync_connector_source.is_folder(source_path):
