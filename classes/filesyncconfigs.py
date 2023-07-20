@@ -12,9 +12,17 @@ class FilesyncConfigs:
 
 
 
-    def __init__(self, source_path, is_delete, is_dual, ignore_regex_list, rename_dict):
-        logs.debug(f"(FilesyncConfigs.__init__) source_path: {source_path}, is_delete: {is_delete}, is_dual: {is_dual}, ignore_regex_list: {ignore_regex_list}, rename_dict: {rename_dict}")
+    def __init__(self, source_path, destination_path, is_delete, is_dual, ignore_regex_list, rename_dict):
+        logs.debug('(FilesyncConfigs.__init__)', {
+            'source_path': source_path,
+            'destination_path': destination_path,
+            'is_delete': is_delete,
+            'is_dual': is_dual,
+            'ignore_regex_list': ignore_regex_list,
+            'rename_dict': rename_dict
+        })
         self.source_path = source_path
+        self.destination_path = destination_path
         self.is_delete = is_delete
         self.is_dual = is_dual
         self.ignore_regex_list_folder = []
@@ -39,8 +47,10 @@ class FilesyncConfigs:
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConfigs.from_dict) configs_dict: {configs_dict}")
-        return FilesyncConfigs(configs_dict['source_path'], configs_dict['is_delete'], configs_dict['is_dual'], configs_dict['ignore_regex_list'], configs_dict['rename_dict'])
+        logs.debug('(FilesyncConfigs.from_dict)', {
+            'configs_dict': configs_dict
+        })
+        return FilesyncConfigs(configs_dict['source_path'], configs_dict['destination_path'], configs_dict['is_delete'], configs_dict['is_dual'], configs_dict['ignore_regex_list'], configs_dict['rename_dict'])
 
 
 
@@ -51,6 +61,7 @@ class FilesyncConfigs:
         logs.debug('(FilesyncConfigs.to_dict)')
         return {
             'source_path': self.source_path,
+            'destination_path': self.destination_path,
             'is_delete': self.is_delete,
             'is_dual': self.is_dual,
             'ignore_regex_list': [

@@ -11,7 +11,13 @@ def sync(filesync_connector_source, source_path, filesync_connector_destination,
     '''
     pass
     '''
-    logs.debug(f"(utils.sync) filesync_connector_source: {filesync_connector_source}, source_path: {source_path}, filesync_connector_destination: {filesync_connector_destination}, destination_path: {destination_path}, filesync_configs: {filesync_configs}")
+    logs.debug('(utils.sync)', {
+        'filesync_connector_source': str(filesync_connector_source),
+        'source_path': source_path,
+        'filesync_connector_destination': str(filesync_connector_destination),
+        'destination_path': destination_path,
+        'filesync_configs': str(filesync_configs)
+    })
     folder_list_source = []
     file_list_source = []
     for entry in filesync_connector_source.entry_list(source_path):

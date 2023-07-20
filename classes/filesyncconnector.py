@@ -16,7 +16,9 @@ class FilesyncConnector:
 
 
     def __init__(self, root_path):
-        logs.debug(f"(FilesyncConnector.__init__) root_path: {root_path}")
+        logs.debug('(FilesyncConnector.__init__)', {
+            'root_path': root_path
+        })
         self.root_path = root_path
 
 
@@ -25,7 +27,9 @@ class FilesyncConnector:
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnector.resolve_path) entry_path_list: {entry_path_list}")
+        logs.debug('(FilesyncConnector.resolve_path)', {
+            'entry_path_list': entry_path_list
+        })
         return paths.resolve_path(*(((self.root_path if self.root_path is not None else ''), ) if not path.isabs(entry_path_list[0]) else ()), *entry_path_list)
 
 
@@ -34,7 +38,9 @@ class FilesyncConnector:
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnector.folder_path) entry_path_list: {entry_path_list}")
+        logs.debug('(FilesyncConnector.folder_path)', {
+            'entry_path_list': entry_path_list
+        })
         return path.dirname(self.resolve_path(*entry_path_list))
 
 
@@ -43,7 +49,9 @@ class FilesyncConnector:
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnector.file_name) entry_path_list: {entry_path_list}")
+        logs.debug('(FilesyncConnector.file_name)', {
+            'entry_path_list': entry_path_list
+        })
         return path.basename(self.resolve_path(*entry_path_list))
 
 

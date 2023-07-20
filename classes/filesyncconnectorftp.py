@@ -20,7 +20,13 @@ class FilesyncConnectorFtp(FilesyncConnector):
 
 
     def __init__(self, root_path, host, port, user, password):
-        logs.debug(f"(FilesyncConnectorFtp.__init__) root_path: {root_path}, host: {host}, port: {port}, user: {user}, password: {password}")
+        logs.debug('(FilesyncConnectorFtp.__init__)', {
+            'root_path': root_path,
+            'host': host,
+            'port': port,
+            'user': user,
+            'password': password
+        })
         ftp_tls = FTP_TLS()
         ftp_tls.connect(host, port)
         if user:
@@ -34,7 +40,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorFtp.is_entry) entry_path_list: {entry_path_list}")
+        logs.debug('(FilesyncConnectorFtp.is_entry)', {
+            'entry_path_list': entry_path_list
+        })
         return self.file_name(*entry_path_list) in self.ftp_tls.nlst(self.folder_path(*entry_path_list))
 
 
@@ -43,7 +51,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorFtp.is_folder) entry_path_list: {entry_path_list}")
+        logs.debug('(FilesyncConnectorFtp.is_folder)', {
+            'entry_path_list': entry_path_list
+        })
         return bool([entry for entry in self.ftp_tls.mlsd(self.folder_path(*entry_path_list)) if entry[0] == self.file_name(*entry_path_list) and entry[1]['type'] == 'dir'])
 
 
@@ -52,7 +62,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorFtp.entry_list) folder_path_list: {folder_path_list}")
+        logs.debug('(FilesyncConnectorFtp.entry_list)', {
+            'folder_path_list': folder_path_list
+        })
         return self.ftp_tls.nlst(self.resolve_path(*folder_path_list))
 
 
@@ -61,7 +73,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorFtp.make_folder) folder_path_list: {folder_path_list}")
+        logs.debug('(FilesyncConnectorFtp.make_folder)', {
+            'folder_path_list': folder_path_list
+        })
         self.ftp_tls.mkd(self.resolve_path(*folder_path_list))
 
 
@@ -70,7 +84,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorFtp.remove_folder) folder_path_list: {folder_path_list}")
+        logs.debug('(FilesyncConnectorFtp.remove_folder)', {
+            'folder_path_list': folder_path_list
+        })
         folder_path = self.resolve_path(*folder_path_list)
         for entry in self.ftp_tls.mlsd(folder_path):
             if entry[1]['type'] == 'dir':
@@ -85,7 +101,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorFtp.m_time) file_path_list: {file_path_list}")
+        logs.debug('(FilesyncConnectorFtp.m_time)', {
+            'file_path_list': file_path_list
+        })
         return datetime.strptime([entry for entry in self.ftp_tls.mlsd(self.folder_path(*file_path_list)) if entry[0] == self.file_name(*file_path_list)][0]['modify'], '%Y%m%d%H%M%S.%f')
 
 
@@ -94,7 +112,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorFtp.read_file) file_path_list: {file_path_list}")
+        logs.debug('(FilesyncConnectorFtp.read_file)', {
+            'file_path_list': file_path_list
+        })
         byte_str = ''
         def _read_file(byte):
             byte_str += byte
@@ -107,7 +127,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorFtp.write_file) file_path_list: {file_path_list}")
+        logs.debug('(FilesyncConnectorFtp.write_file)', {
+            'file_path_list': file_path_list
+        })
         self.ftp_tls.storbinary(f"STOR {self.resolve_path(*file_path_list)}", BytesIO(byte))
 
 
@@ -116,7 +138,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorFtp.remove_file) file_path_list: {file_path_list}")
+        logs.debug('(FilesyncConnectorFtp.remove_file)', {
+            'file_path_list': file_path_list
+        })
         self.ftp_tls.delete(self.resolve_path(*file_path_list))
 
 

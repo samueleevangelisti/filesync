@@ -20,7 +20,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
 
 
     def __init__(self, root_path):
-        logs.debug(f"(FilesyncConnectorLocal.__init__) root_path: {root_path}")
+        logs.debug('(FilesyncConnectorLocal.__init__)', {
+            'root_path': root_path
+        })
         FilesyncConnector.__init__(self, (paths.resolve_path(root_path) if root_path is not None else None))
 
 
@@ -29,7 +31,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorLocal.is_entry) entry_path_list: {entry_path_list}")
+        logs.debug('(FilesyncConnectorLocal.is_entry)',  {
+            'entry_path_list': entry_path_list
+        })
         return path.exists(self.resolve_path(*entry_path_list))
 
 
@@ -38,7 +42,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorLocal.is_folder) entry_path_list: {entry_path_list}")
+        logs.debug('(FilesyncConnectorLocal.is_folder)', {
+            'entry_path_list': entry_path_list
+        })
         return path.isdir(self.resolve_path(*entry_path_list))
 
 
@@ -47,7 +53,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorLocal.entry_list) folder_path_list: {folder_path_list}")
+        logs.debug('(FilesyncConnectorLocal.entry_list)', {
+            'folder_path_list': folder_path_list
+        })
         return os.listdir(self.resolve_path(*folder_path_list))
 
 
@@ -56,7 +64,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorLocal.make_folder) folder_path_list: {folder_path_list}")
+        logs.debug('(FilesyncConnectorLocal.make_folder)', {
+            'folder_path_list': folder_path_list
+        })
         os.makedirs(self.resolve_path(*folder_path_list))
 
 
@@ -65,7 +75,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorLocal.remove_folder) folder_path_list: {folder_path_list}")
+        logs.debug('(FilesyncConnectorLocal.remove_folder)', {
+            'folder_path_list': folder_path_list
+        })
         shutil.rmtree(self.resolve_path(*folder_path_list))
 
 
@@ -74,7 +86,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorLocal.m_time) file_path_list: {file_path_list}")
+        logs.debug('(FilesyncConnectorLocal.m_time)', {
+            'file_path_list': file_path_list
+        })
         return datetime.utcfromtimestamp(os.stat(self.resolve_path(*file_path_list)).st_mtime)
 
 
@@ -83,7 +97,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorLocal.read_file) file_path_list: {file_path_list}")
+        logs.debug('(FilesyncConnectorLocal.read_file)', {
+            'file_path_list': file_path_list
+        })
         with open(self.resolve_path(*file_path_list), 'rb') as file:
             return file.read()
 
@@ -93,7 +109,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorLocal.write_file) file_path_list: {file_path_list}")
+        logs.debug('(FilesyncConnectorLocal.write_file)', {
+            'file_path_list': file_path_list
+        })
         with open(self.resolve_path(*file_path_list), 'wb') as file:
             file.write(byte)
 
@@ -103,7 +121,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         '''
         pass
         '''
-        logs.debug(f"(FilesyncConnectorLocal.remove_file) file_path_list: {file_path_list}")
+        logs.debug('(FilesyncConnectorLocal.remove_file)', {
+            'file_path_list': file_path_list
+        })
         os.remove(self.resolve_path(*file_path_list))
 
 
