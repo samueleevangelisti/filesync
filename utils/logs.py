@@ -2,6 +2,7 @@
 logs.py
 '''
 from datetime import datetime
+import json
 
 import environments
 
@@ -109,54 +110,55 @@ def print_red(text):
 
 
 
-def _log(text):
+def _log(text, color_fn=lambda e: e, param_dict=None):
     '''
     _log(text)
     '''
     if _IS_LOG:
-        print(f"{color_blue(f'[{datetime.now().isoformat()}]')} {text}")
+        param_str = '\n{param_dict}'.format(param_dict=json.dumps(param_dict, indent=2)) if param_dict else ''
+        print(f"{color_blue(f'[{datetime.now().isoformat()}]')} {color_fn(f'{text}{param_str}')}")
 
 
 
-def debug(text):
+def debug(text, param_dict=None):
     '''
     debug(text)
     '''
     if _IS_DEBUG:
-        _log(color_purple(f"(DEBUG) {text}"))
+        _log(f"(DEBUG) {text}", color_purple, param_dict)
 
 
 
-def info(text):
+def info(text, param_dict=None):
     '''
     info(text)
     '''
     if _IS_INFO:
-        _log(f"(INFO) {text}")
+        _log(f"(INFO) {text}", lambda e: e, param_dict)
 
 
 
-def success(text):
+def success(text, param_dict=None):
     '''
     success(text)
     '''
     if _IS_SUCCESS:
-        _log(color_green(f"(SUCCESS) {text}"))
+        _log(f"(SUCCESS) {text}", color_green, param_dict)
 
 
 
-def warning(text):
+def warning(text, param_dict=None):
     '''
     warning(text)
     '''
     if _IS_WARNING:
-        _log(color_yellow(f"(WARNING) {text}"))
+        _log(f"(WARNING) {text}", color_yellow, param_dict)
 
 
 
-def error(text):
+def error(text, param_dict=None):
     '''
     error(text)
     '''
     if _IS_ERROR:
-        _log(color_red(f"(ERROR) {text}"))
+        _log(f"(ERROR) {text}", color_red, param_dict)
