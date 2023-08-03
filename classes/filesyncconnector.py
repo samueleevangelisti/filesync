@@ -30,7 +30,7 @@ class FilesyncConnector:
         logs.debug('(FilesyncConnector.resolve_path)', {
             'entry_path_list': entry_path_list
         })
-        return paths.resolve_path(*(((self.root_path if self.root_path is not None else ''), ) if not path.isabs(entry_path_list[0]) else ()), *entry_path_list)
+        return paths.resolve_path(*(((self.root_path if self.root_path is not None else ''), ) if not paths.is_absolute(*entry_path_list) else ()), *entry_path_list)
 
 
 

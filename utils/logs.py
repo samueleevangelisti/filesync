@@ -8,6 +8,13 @@ import environments
 
 
 
+_IS_LOG = True
+_IS_DEBUG = environments.DEVELOPMENT
+_IS_INFO = True
+_IS_SUCCESS = True
+_IS_WARNING = True
+_IS_ERROR = True
+
 _COLOR_NONE = 0
 _COLOR_BLUE = 94
 _COLOR_PURPLE = 95
@@ -15,12 +22,7 @@ _COLOR_GREEN = 92
 _COLOR_YELLOW = 93
 _COLOR_RED = 91
 
-_IS_LOG = True
-_IS_DEBUG = environments.DEVELOPMENT
-_IS_INFO = True
-_IS_SUCCESS = True
-_IS_WARNING = True
-_IS_ERROR = True
+CHAR_NEW_LINE = '\n'
 
 
 
