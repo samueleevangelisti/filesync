@@ -1,10 +1,32 @@
 '''
 logs.py
+This module is from samueva97 private repository `myutils`.
+Do not modify it
 '''
+import sys
+import logging
 from datetime import datetime
 import json
 
 import environments
+from utils import paths
+
+
+
+def _create_log_file_name(date_str=None):
+    return f"log_{date_str or datetime.utcnow().strftime('%Y-%m-%d')}.log"
+
+
+
+# TODO DSE implementare correttamente questa funzione
+# logging.basicConfig(
+#     format='[%(asctime)s] %(process)d:%(thread)d %(name)s %(module)s:%(funcName)s (%(levelname)s) %(message)s',
+#     level=logging.INFO,
+#     handlers = [
+#         logging.StreamHandler(sys.stdout),
+#         logging.FileHandler(paths.resolve_path(paths.folder_path(__file__), 'logs', _create_log_file_name()))
+#     ]
+# )
 
 
 
