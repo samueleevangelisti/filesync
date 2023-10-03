@@ -2,7 +2,6 @@
 filesyncconnectorlocal.py
 '''
 import os
-from os import path
 import shutil
 from datetime import datetime
 
@@ -23,7 +22,7 @@ class FilesyncConnectorLocal(FilesyncConnector):
         logs.debug('(FilesyncConnectorLocal.__init__)', {
             'root_path': root_path
         })
-        FilesyncConnector.__init__(self, (paths.resolve_path(root_path) if root_path is not None else None))
+        FilesyncConnector.__init__(self, paths.resolve_path(root_path))
 
 
 
@@ -34,7 +33,7 @@ class FilesyncConnectorLocal(FilesyncConnector):
         logs.debug('(FilesyncConnectorLocal.is_entry)',  {
             'entry_path_list': entry_path_list
         })
-        return path.exists(self.resolve_path(*entry_path_list))
+        return paths.is_entry(self.resolve_path(*entry_path_list))
 
 
 
@@ -45,7 +44,7 @@ class FilesyncConnectorLocal(FilesyncConnector):
         logs.debug('(FilesyncConnectorLocal.is_folder)', {
             'entry_path_list': entry_path_list
         })
-        return path.isdir(self.resolve_path(*entry_path_list))
+        return paths.is_folder(self.resolve_path(*entry_path_list))
 
 
 
@@ -112,6 +111,9 @@ class FilesyncConnectorLocal(FilesyncConnector):
         logs.debug('(FilesyncConnectorLocal.write_file)', {
             'file_path_list': file_path_list
         })
+        folder_path = self.folder_path(*file_path_list)
+        if not self.is_folder(folder_path):
+            self.make_folder(folder_path)
         with open(self.resolve_path(*file_path_list), 'wb') as file:
             file.write(byte)
 

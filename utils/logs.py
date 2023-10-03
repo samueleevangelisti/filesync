@@ -5,6 +5,7 @@ Do not modify it
 '''
 import sys
 import logging
+import colorlog
 from datetime import datetime
 import json
 
@@ -13,20 +14,37 @@ from utils import paths
 
 
 
-def _create_log_file_name(date_str=None):
-    return f"log_{date_str or datetime.utcnow().strftime('%Y-%m-%d')}.log"
+# Crea un logger colorato
+LOGGER = colorlog.getLogger()
+LOGGER.setLevel(logging.DEBUG)
+# Definisci un formato di log colorato
+formatter = colorlog.ColoredFormatter(
+    '%(log_color)s[%(asctime)s] %(process)d:%(thread)d %(name)s %(module)s:%(funcName)s (%(levelname)s) %(message)s%(reset)s',
+    log_colors={
+        'DEBUG': 'green',
+        'INFO': 'blue',
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+        'CRITICAL': 'red,bg_white'
+    }
+)
+# Aggiungi un gestore di log alla console con il formato colorato
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+LOGGER.addHandler(console_handler)
+logging.root = LOGGER
 
 
 
-# TODO DSE implementare correttamente questa funzione
-# logging.basicConfig(
-#     format='[%(asctime)s] %(process)d:%(thread)d %(name)s %(module)s:%(funcName)s (%(levelname)s) %(message)s',
-#     level=logging.INFO,
-#     handlers = [
-#         logging.StreamHandler(sys.stdout),
-#         logging.FileHandler(paths.resolve_path(paths.folder_path(__file__), 'logs', _create_log_file_name()))
-#     ]
-# )
+# TODO DSE applicare questa funzione nelle funzioni di log
+logging.basicConfig(
+    format='[%(asctime)s] %(process)d:%(thread)d %(name)s %(module)s:%(funcName)s (%(levelname)s) %(message)s',
+    level=(logging.DEBUG if environments.DEVELOPMENT else logging.INFO),
+    handlers = [
+        logging.StreamHandler(sys.stdout),
+        *((logging.FileHandler(paths.resolve_path(environments.LOG_PATH, f"{datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')}.log")), ) if environments.IS_LOG_FILE else tuple())
+    ]
+)
 
 
 

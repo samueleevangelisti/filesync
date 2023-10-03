@@ -39,8 +39,24 @@ def is_entry(*entry_path_list):
 
 
 
-def folder_path(*file_path_list):
+def is_folder(*entry_path_list):
+    '''
+    Returns true if entry is folder
+    '''
+    return path.isdir(resolve_path(*entry_path_list))
+
+
+
+def folder_path(*entry_path_list):
     '''
     Returns the folder path
     '''
-    return path.dirname(resolve_path(*file_path_list))
+    return path.dirname(resolve_path(*entry_path_list))
+
+
+
+def file_name(*entry_path_list):
+    '''
+    Returns the folder path
+    '''
+    return path.basename(resolve_path(*entry_path_list))

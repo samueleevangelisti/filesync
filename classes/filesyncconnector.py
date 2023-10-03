@@ -1,9 +1,8 @@
 '''
 filesyncconnector.py
 '''
-from os import path
-
 from utils import logs
+from utils import typechecks
 from utils import paths
 
 
@@ -19,6 +18,7 @@ class FilesyncConnector:
         logs.debug('(FilesyncConnector.__init__)', {
             'root_path': root_path
         })
+        typechecks.check(root_path, str)
         self.root_path = root_path
 
 
@@ -30,7 +30,9 @@ class FilesyncConnector:
         logs.debug('(FilesyncConnector.resolve_path)', {
             'entry_path_list': entry_path_list
         })
-        return paths.resolve_path(*(((self.root_path if self.root_path is not None else ''), ) if not paths.is_absolute(*entry_path_list) else ()), *entry_path_list)
+        return paths.resolve_path(*((
+            self.root_path,
+        ) or () if not paths.is_absolute(*entry_path_list) else ()), *entry_path_list)
 
 
 
@@ -41,7 +43,7 @@ class FilesyncConnector:
         logs.debug('(FilesyncConnector.folder_path)', {
             'entry_path_list': entry_path_list
         })
-        return path.dirname(self.resolve_path(*entry_path_list))
+        return paths.folder_path(self.resolve_path(*entry_path_list))
 
 
 
@@ -52,7 +54,7 @@ class FilesyncConnector:
         logs.debug('(FilesyncConnector.file_name)', {
             'entry_path_list': entry_path_list
         })
-        return path.basename(self.resolve_path(*entry_path_list))
+        return paths.file_name(self.resolve_path(*entry_path_list))
 
 
 

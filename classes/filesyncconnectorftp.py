@@ -1,12 +1,12 @@
 '''
 filesyncconnectorftp.py
 '''
-from os import path
 from io import BytesIO
 from datetime import datetime
 from ftplib import FTP_TLS
 
 from utils import logs
+from utils import typechecks
 from utils import paths
 from classes.filesyncconnector import FilesyncConnector
 
@@ -27,11 +27,17 @@ class FilesyncConnectorFtp(FilesyncConnector):
             'user': user,
             'password': password
         })
+        typechecks.check(host, str)
+        typechecks.check(port, int)
+        typechecks.check(user, str, None)
+        typechecks.check(password, str, None)
         ftp_tls = FTP_TLS()
         ftp_tls.connect(host, port)
         if user:
             ftp_tls.login(user, password)
-        FilesyncConnector.__init__(self, (paths.resolve_path(*((ftp_tls.pwd(), ) if not path.isabs(root_path) else ()), root_path) if root_path is not None else None))
+        FilesyncConnector.__init__(self, paths.resolve_path(*((
+            ftp_tls.pwd(),
+        ) if not paths.is_absolute(root_path) else ()), root_path))
         self.ftp_tls = ftp_tls
 
 
@@ -54,7 +60,8 @@ class FilesyncConnectorFtp(FilesyncConnector):
         logs.debug('(FilesyncConnectorFtp.is_folder)', {
             'entry_path_list': entry_path_list
         })
-        return bool([entry for entry in self.ftp_tls.mlsd(self.folder_path(*entry_path_list)) if entry[0] == self.file_name(*entry_path_list) and entry[1]['type'] == 'dir'])
+        entry_path = self.resolve_path(*entry_path_list)
+        return bool(tuple(entry for entry in self.ftp_tls.mlsd(self.folder_path(entry_path)) if entry[0] == self.file_name(entry_path) and entry[1]['type'] == 'dir')) or entry_path == '/'
 
 
 
@@ -76,6 +83,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         logs.debug('(FilesyncConnectorFtp.make_folder)', {
             'folder_path_list': folder_path_list
         })
+        folder_path = self.folder_path(*folder_path_list)
+        if not self.is_folder(folder_path):
+            self.make_folder(folder_path)
         self.ftp_tls.mkd(self.resolve_path(*folder_path_list))
 
 
@@ -115,8 +125,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         logs.debug('(FilesyncConnectorFtp.read_file)', {
             'file_path_list': file_path_list
         })
-        byte_str = ''
+        byte_str = b''
         def _read_file(byte):
+            nonlocal byte_str
             byte_str += byte
         self.ftp_tls.retrbinary(f"RETR {self.resolve_path(*file_path_list)}", _read_file)
         return byte_str
@@ -130,6 +141,9 @@ class FilesyncConnectorFtp(FilesyncConnector):
         logs.debug('(FilesyncConnectorFtp.write_file)', {
             'file_path_list': file_path_list
         })
+        folder_path = self.folder_path(*file_path_list)
+        if not self.is_folder(folder_path):
+            self.make_folder(folder_path)
         self.ftp_tls.storbinary(f"STOR {self.resolve_path(*file_path_list)}", BytesIO(byte))
 
 
