@@ -1,6 +1,6 @@
 '''
 paths.py
-This module is from samueva97 private repository `myutils`.
+This module is from samueva97.
 Do not modify it
 '''
 from os import path

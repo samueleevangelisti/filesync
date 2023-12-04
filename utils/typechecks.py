@@ -1,5 +1,7 @@
 '''
 typechecks.py
+This module is from samueva97.
+Do not modify it
 '''
 def check(variable, *type_list):
     '''
@@ -14,5 +16,6 @@ def check(variable, *type_list):
     '''
     if variable is None and None in type_list:
         return
-    if type(variable) not in type_list:
-        raise TypeError('Wrong type')
+    variable_type = type(variable)
+    if variable_type not in type_list:
+        raise TypeError(f"Type `{variable_type}` not allowed")

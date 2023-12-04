@@ -1,206 +1,216 @@
 '''
 logs.py
-This module is from samueva97 private repository `myutils`.
+This module is from samueva97.
 Do not modify it
 '''
-import sys
 import logging
-import colorlog
+from logging import StreamHandler
+from logging import Formatter
+from logging.handlers import TimedRotatingFileHandler
+import os
 from datetime import datetime
-import json
 
 import environments
+from utils import colors
 from utils import paths
+from utils import converts
 
 
 
-# Crea un logger colorato
-LOGGER = colorlog.getLogger()
-LOGGER.setLevel(logging.DEBUG)
-# Definisci un formato di log colorato
-formatter = colorlog.ColoredFormatter(
-    '%(log_color)s[%(asctime)s] %(process)d:%(thread)d %(name)s %(module)s:%(funcName)s (%(levelname)s) %(message)s%(reset)s',
-    log_colors={
-        'DEBUG': 'green',
-        'INFO': 'blue',
-        'WARNING': 'yellow',
-        'ERROR': 'red',
-        'CRITICAL': 'red,bg_white'
+_QUERY = logging.DEBUG + 1
+_REQUEST = logging.DEBUG + 2
+_SUCCESS = logging.INFO + 1
+
+
+
+
+
+
+
+
+
+class CustomTimedRotatingFileHandler(TimedRotatingFileHandler):
+    '''
+    Timed rotating file handler with correct renaming
+    '''
+
+
+
+    def namer(self, file_name):
+        '''
+        Overrides
+        ---------
+        TimedRotatingFileHandler.namer
+        '''
+        return paths.resolve_path(paths.folder_path(self.baseFilename), f"{datetime.utcnow().isoformat()}-{paths.file_name(self.baseFilename)}")
+
+
+
+    def rotator(self, source, dest):
+        '''
+        Overrides
+        ---------
+        TimedRotatingFileHandler.rotator
+        '''
+        if paths.is_entry(source):
+            os.rename(source, dest)
+            with open(dest, 'rb') as source_file:
+                with open(f"{dest}.zstd", 'wb') as destination_file:
+                    destination_file.write(converts.byte_to_zstd(source_file.read()))
+            os.remove(dest)
+
+
+
+
+
+
+
+
+
+class CustomFormatter(Formatter):
+    '''
+    Formatter for utc time and colored log
+    '''
+    levelno_color_map = {
+        logging.DEBUG: colors.PURPLE,
+        _QUERY: colors.ORANGE,
+        _REQUEST: colors.BLUE,
+        logging.INFO: colors.NONE,
+        _SUCCESS: colors.GREEN,
+        logging.WARNING: colors.YELLOW,
+        logging.ERROR: colors.RED,
+        logging.CRITICAL: colors.RED
     }
-)
-# Aggiungi un gestore di log alla console con il formato colorato
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-LOGGER.addHandler(console_handler)
-logging.root = LOGGER
 
 
 
-# TODO DSE applicare questa funzione nelle funzioni di log
-logging.basicConfig(
-    format='[%(asctime)s] %(process)d:%(thread)d %(name)s %(module)s:%(funcName)s (%(levelname)s) %(message)s',
-    level=(logging.DEBUG if environments.DEVELOPMENT else logging.INFO),
-    handlers = [
-        logging.StreamHandler(sys.stdout),
-        *((logging.FileHandler(paths.resolve_path(environments.LOG_PATH, f"{datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')}.log")), ) if environments.IS_LOG_FILE else tuple())
-    ]
-)
+    def __init__(self, fmt=None, datefmt=None, style='%', validate=True, *, defaults=None):
+        '''
+        Overrides
+        ---------
+        Formatter.__init__
+        '''
+        Formatter.__init__(self, f"{colors.GREY}[%(asctime)s] %(process)d:%(thread)d %(module)s:%(funcName)s %(name)s{colors.NONE} %(log_color)s(%(levelname)s) %(message)s{colors.NONE}", datefmt, style, validate, defaults=defaults)
 
 
 
-_IS_LOG = True
-_IS_DEBUG = environments.DEVELOPMENT
-_IS_INFO = True
-_IS_SUCCESS = True
-_IS_WARNING = True
-_IS_ERROR = True
-
-_COLOR_NONE = 0
-_COLOR_BLUE = 94
-_COLOR_PURPLE = 95
-_COLOR_GREEN = 92
-_COLOR_YELLOW = 93
-_COLOR_RED = 91
-
-CHAR_NEW_LINE = '\n'
+    def formatTime(self, record, datefmt=None):
+        '''
+        Overrides
+        ---------
+        Formatter.formatTime
+        '''
+        return datetime.utcfromtimestamp(record.created).isoformat()
 
 
 
-def _color(text, color):
-    text = str(text).replace('\n', f"\033[{_COLOR_NONE}m\n\033[{color}m")
-    return f"\033[{color}m{text}\033[{_COLOR_NONE}m"
+    def formatMessage(self, record):
+        '''
+        Overrides
+        ---------
+        Formatter.formatMessage
+        '''
+        record.message = record.message.replace(colors.NONE, f"{colors.NONE}{CustomFormatter.levelno_color_map[record.levelno]}")
+        record.log_color = CustomFormatter.levelno_color_map[record.levelno]
+        return Formatter.formatMessage(self, record)
 
 
 
-def color_blue(text):
-    '''
-    Returns the text colored in blue
-    '''
-    return _color(text, _COLOR_BLUE)
 
 
 
-def color_purple(text):
-    '''
-    Returns the text colored in purple
-    '''
-    return _color(text, _COLOR_PURPLE)
 
 
 
-def color_green(text):
-    '''
-    Returns the text colored in green
-    '''
-    return _color(text, _COLOR_GREEN)
+logging.addLevelName(_QUERY, 'QUERY')
+logging.addLevelName(_REQUEST, 'REQUEST')
+logging.addLevelName(_SUCCESS, 'SUCCESS')
 
 
 
-def color_yellow(text):
-    '''
-    Returns the text colored in yellow
-    '''
-    return _color(text, _COLOR_YELLOW)
+_LOGGER = logging.getLogger()
+_LOGGER.setLevel(logging.DEBUG if environments.IS_DEVELOPMENT else logging.INFO)
+custom_formatter = CustomFormatter()
+console_handler = StreamHandler()
+console_handler.setFormatter(custom_formatter)
+_LOGGER.addHandler(console_handler)
+if environments.IS_LOG_FILE:
+    if not paths.is_entry(environments.LOG_FOLDER_PATH):
+        os.makedirs(environments.LOG_FOLDER_PATH)
+    elif not paths.is_folder(environments.LOG_FOLDER_PATH):
+        raise Exception(f"`{environments.LOG_FOLDER_PATH}` is not a folder")
+    file_handler = CustomTimedRotatingFileHandler(paths.resolve_path(environments.LOG_FOLDER_PATH, 'log.log'), when='midnight')
+    file_handler.setFormatter(custom_formatter)
+    _LOGGER.addHandler(file_handler)
 
 
 
-def color_red(text):
-    '''
-    Returns the text colored in red
-    '''
-    return _color(text, _COLOR_RED)
-
-
-
-def print_blue(text):
-    '''
-    Prints the text colored in blue
-    '''
-    print(color_blue(text))
-
-
-
-def print_purple(text):
-    '''
-    Prints the text colored in purple
-    '''
-    print(color_purple(text))
-
-
-
-def print_green(text):
-    '''
-    Prints the text colored in green
-    '''
-    print(color_green(text))
-
-
-
-def print_yellow(text):
-    '''
-    Prints the text colored in yellow
-    '''
-    print(color_yellow(text))
-
-
-
-def print_red(text):
-    '''
-    Prints the text colored in red
-    '''
-    print(color_red(text))
-
-
-
-def _log(text, color_fn=lambda e: e, param_dict=None):
-    '''
-    _log(text)
-    '''
-    if _IS_LOG:
-        param_str = '\n{param_dict}'.format(param_dict=json.dumps(param_dict, indent=2)) if param_dict else ''
-        print(f"{color_blue(f'[{datetime.now().isoformat()}]')} {color_fn(f'{text}{param_str}')}")
-
-
-
-def debug(text, param_dict=None):
+def debug(text):
     '''
     debug(text)
     '''
-    if _IS_DEBUG:
-        _log(f"(DEBUG) {text}", color_purple, param_dict)
+    logging.debug(text)
 
 
 
-def info(text, param_dict=None):
+def query(text):
+    '''
+    query(text)
+    '''
+    logging.log(_QUERY, text)
+
+
+
+def request(text):
+    '''
+    request(text)
+    '''
+    logging.log(_REQUEST, text)
+
+
+
+def info(text):
     '''
     info(text)
     '''
-    if _IS_INFO:
-        _log(f"(INFO) {text}", lambda e: e, param_dict)
+    logging.info(text)
 
 
 
-def success(text, param_dict=None):
+def success(text):
     '''
     success(text)
     '''
-    if _IS_SUCCESS:
-        _log(f"(SUCCESS) {text}", color_green, param_dict)
+    logging.log(_SUCCESS, text)
 
 
 
-def warning(text, param_dict=None):
+def warning(text):
     '''
     warning(text)
     '''
-    if _IS_WARNING:
-        _log(f"(WARNING) {text}", color_yellow, param_dict)
+    logging.warning(text)
 
 
 
-def error(text, param_dict=None):
+def error(text):
     '''
     error(text)
     '''
-    if _IS_ERROR:
-        _log(f"(ERROR) {text}", color_red, param_dict)
+    logging.error(text)
+
+
+
+def critical(text):
+    '''
+    critical(text)
+    '''
+    logging.critical(text)
+
+
+
+def exception(text):
+    '''
+    error(text)
+    '''
+    logging.exception(text)
