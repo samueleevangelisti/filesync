@@ -3,7 +3,7 @@ utils.py
 '''
 import re
 
-from utils import logs
+from utils import prints
 
 
 
@@ -11,13 +11,6 @@ def sync(source_filesync_connector, source_path, destination_filesync_connector,
     '''
     pass
     '''
-    logs.debug('(utils.sync)', {
-        'source_filesync_connector': str(source_filesync_connector),
-        'source_path': source_path,
-        'destination_filesync_connector': str(destination_filesync_connector),
-        'destination_path': destination_path,
-        'filesync_configs': str(filesync_configs)
-    })
     source_folder_list = []
     source_file_list = []
     for entry in source_filesync_connector.entry_list(source_path):
@@ -48,15 +41,15 @@ def sync(source_filesync_connector, source_path, destination_filesync_connector,
             if source_folder_path in filesync_configs.folder_rename_dict:
                 destination_folder_path = filesync_configs.folder_rename_dict[source_folder_path]
                 del filesync_configs.folder_rename_dict[source_folder_path]
-                logs.print_purple(f" || {source_folder_path} -> {destination_folder_path}")
+                prints.purple(f" || {source_folder_path} -> {destination_folder_path}")
             if folder not in destination_folder_list:
                 destination_filesync_connector.make_folder(destination_folder_path)
-            logs.print_purple(f" ?? {destination_folder_path}")
+            prints.purple(f" ?? {destination_folder_path}")
             sync(source_filesync_connector, source_folder_path, destination_filesync_connector, destination_folder_path, filesync_configs)
             if folder in destination_folder_list:
                 destination_folder_list.remove(folder)
         else:
-            logs.print_yellow(f" !! {source_folder_path}")
+            prints.yellow(f" !! {source_folder_path}")
 
     for folder in destination_folder_list:
         remove_folder_path = destination_filesync_connector.resolve_path(destination_path, folder)
@@ -65,7 +58,7 @@ def sync(source_filesync_connector, source_path, destination_filesync_connector,
             is_ignore = is_ignore or re.match(ignore_regex, remove_folder_path)
         if not is_ignore:
             if filesync_configs.is_delete:
-                logs.print_red(f" -- {remove_folder_path}")
+                prints.red(f" -- {remove_folder_path}")
                 destination_filesync_connector.remove_folder(remove_folder_path)
 
     for file in source_file_list:
@@ -78,20 +71,20 @@ def sync(source_filesync_connector, source_path, destination_filesync_connector,
             if source_file_path in filesync_configs.file_rename_dict:
                 destination_file_path = filesync_configs.file_rename_dict[source_file_path]
                 del filesync_configs.file_rename_dict[source_file_path]
-                logs.print_purple(f" || {source_file_path} -> {destination_file_path}")
+                prints.purple(f" || {source_file_path} -> {destination_file_path}")
             if file in destination_file_list:
                 if source_filesync_connector.m_time(source_file_path) > destination_filesync_connector.m_time(destination_file_path):
-                    logs.print_green(f" -> {destination_file_path}")
+                    prints.green(f" -> {destination_file_path}")
                     destination_filesync_connector.write_file(source_filesync_connector.read_file(source_file_path), destination_file_path)
                 elif filesync_configs.is_dual and destination_filesync_connector.m_time(destination_file_path) > source_filesync_connector.m_time(source_file_path):
-                    logs.print_blue(f" <- {destination_file_path}")
+                    prints.blue(f" <- {destination_file_path}")
                     source_filesync_connector.write_file(destination_filesync_connector.read_file(destination_file_path), source_file_path)
                 destination_file_list.remove(file)
             else:
-                logs.print_green(f" ++ {destination_file_path}")
+                prints.green(f" ++ {destination_file_path}")
                 destination_filesync_connector.write_file(source_filesync_connector.read_file(source_file_path), destination_file_path)
         else:
-            logs.print_yellow(f" !! {source_file_path}")
+            prints.yellow(f" !! {source_file_path}")
 
     for file in destination_file_list:
         remove_file_path = destination_filesync_connector.resolve_path(destination_path, file)
@@ -100,5 +93,5 @@ def sync(source_filesync_connector, source_path, destination_filesync_connector,
             is_ignore = is_ignore or re.match(ignore_regex, remove_file_path)
         if not is_ignore:
             if filesync_configs.is_delete:
-                logs.print_red(f" -- {remove_file_path}")
+                prints.red(f" -- {remove_file_path}")
                 destination_filesync_connector.remove_file(remove_file_path)

@@ -3,7 +3,6 @@ filesyncconfigs.py
 '''
 import click
 
-from utils import logs
 from utils import typechecks
 
 
@@ -16,16 +15,6 @@ class FilesyncConfigs:
 
 
     def __init__(self, is_source_ftp, source_path, is_destination_ftp, destination_path, is_delete, is_dual, ignore_regex_list, rename_dict):
-        logs.debug('(FilesyncConfigs.__init__)', {
-            'is_source_ftp': is_source_ftp,
-            'source_path': source_path,
-            'is_Destination_ftp': is_destination_ftp,
-            'destination_path': destination_path,
-            'is_delete': is_delete,
-            'is_dual': is_dual,
-            'ignore_regex_list': ignore_regex_list,
-            'rename_dict': rename_dict
-        })
         typechecks.check(is_source_ftp, bool)
         typechecks.check(source_path, str)
         typechecks.check(is_destination_ftp, bool)
@@ -62,7 +51,6 @@ class FilesyncConfigs:
         '''
         pass
         '''
-        logs.debug('(FilesyncConfigs.prompt_create)')
         return FilesyncConfigs(click.prompt('is_source_ftp', type=bool, default=False, show_default=True), click.prompt('source_path', type=str, default='.', show_default=True), click.prompt('is_destination_ftp', type=bool, default=False, show_default=True), click.prompt('destination_path', type=str, default='.', show_default=True), click.prompt('is_delete', type=bool, default=True, show_default=True), click.prompt('is_dual', type=bool, default=False, show_default=True), click.prompt('ignore_regex_list', type=list, default=[
             '.*\\.git/',
             '.*\\_\\_pycache\\_\\_/',
@@ -79,9 +67,6 @@ class FilesyncConfigs:
         '''
         pass
         '''
-        logs.debug('(FilesyncConfigs.from_dict)', {
-            'configs_dict': configs_dict
-        })
         return FilesyncConfigs(configs_dict['is_source_ftp'], configs_dict['source_path'], configs_dict['is_destination_ftp'], configs_dict['destination_path'], configs_dict['is_delete'], configs_dict['is_dual'], configs_dict['ignore_regex_list'], configs_dict['rename_dict'])
 
 
@@ -90,7 +75,6 @@ class FilesyncConfigs:
         '''
         pass
         '''
-        logs.debug('(FilesyncConfigs.to_dict)')
         return {
             'is_source_ftp': self.is_source_ftp,
             'source_path': self.source_path,
