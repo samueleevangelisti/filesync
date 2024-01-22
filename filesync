@@ -87,11 +87,9 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_key, configs_key, ftp_ho
         configs_filesync_connector.write_file(json.dumps(filesync_configs_dict_dict, indent=2).encode(), configs_path)
         sys.exit(0)
 
-    filesync_configs_list = None
+    filesync_configs_list = [filesync_configs]
     if is_all_key:
         filesync_configs_list = [FilesyncConfigs.from_dict(filesync_configs_dict) for filesync_configs_dict in filesync_configs_dict_dict.values()]
-    else:
-        filesync_configs_list = [filesync_configs]
 
     for filesync_configs in filesync_configs_list:
 
