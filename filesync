@@ -8,9 +8,9 @@ import click
 
 from utils import prints
 from utils import utils
-from classes.filesyncconfigs import FilesyncConfigs
-from classes.filesyncconnectorlocal import FilesyncConnectorLocal
-from classes.filesyncconnectorftp import FilesyncConnectorFtp
+from classes.configs import Configs
+from classes.local_connector import LocalConnector
+from classes.ftp_connector import FtpConnector
 
 
 
@@ -34,16 +34,16 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
     is_ftp = bool(ftp_host)
 
     if is_ftp:
-        configs_filesync_connector = FilesyncConnectorFtp(folder_path, ftp_host, ftp_port, ftp_user, ftp_password)
+        configs_filesync_connector = FtpConnector(folder_path, ftp_host, ftp_port, ftp_user, ftp_password)
     else:
-        configs_filesync_connector = FilesyncConnectorLocal(folder_path)
+        configs_filesync_connector = LocalConnector(folder_path)
 
     configs_path = configs_filesync_connector.resolve_path('filesync-configs.json')
     print(f"`configs_path` is `{configs_path}`")
 
     if is_init:
         configs_filesync_connector.write_file(json.dumps({
-            'default': FilesyncConfigs.prompt_create().to_dict()
+            'default': Configs.prompt_create().to_dict()
         }, indent=2).encode(), configs_path)
         sys.exit(0)
 
@@ -53,52 +53,48 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
     if configs_filesync_connector.is_folder(configs_path):
         prints.red(f"`{configs_path}` is not a file")
         sys.exit(1)
-    filesync_configs_dict_dict = json.loads(configs_filesync_connector.read_file(configs_path))
+    configs_dict_dict = json.loads(configs_filesync_connector.read_file(configs_path))
 
     if is_new:
         if configs_key == 'default':
             prints.red(f"Can't create `{configs_key}` configuration")
             sys.exit(1)
-        filesync_configs_dict_dict[configs_key] = FilesyncConfigs.prompt_create().to_dict()
-        configs_filesync_connector.write_file(json.dumps(filesync_configs_dict_dict, indent=2).encode(), configs_path)
+        configs_dict_dict[configs_key] = Configs.prompt_create().to_dict()
+        configs_filesync_connector.write_file(json.dumps(configs_dict_dict, indent=2).encode(), configs_path)
         sys.exit(0)
 
-    if configs_key not in filesync_configs_dict_dict:
+    if configs_key not in configs_dict_dict:
         prints.red(f"`{configs_key}` configuration not found")
         sys.exit(1)
-    filesync_configs = FilesyncConfigs.from_dict(filesync_configs_dict_dict[configs_key])
+    configs = Configs.from_dict(configs_dict_dict[configs_key])
 
     if is_modify:
-        filesync_configs_dict_dict[configs_key] = FilesyncConfigs(click.prompt('is_source_ftp', type=bool, default=filesync_configs.is_source_ftp, show_default=True), click.prompt('source_path', type=str, default=filesync_configs.source_path, show_default=True), click.prompt('is_destination_ftp', type=bool, default=filesync_configs.is_destination_ftp, show_default=True), click.prompt('destination_path', type=str, default=filesync_configs.destination_path, show_default=True), click.prompt('is_delete', type=bool, default=filesync_configs.is_delete, show_default=True), click.prompt('is_dual', type=bool, default=filesync_configs.is_dual, show_default=True), click.prompt('ignore_regex_list', type=list, default=[
-            *filesync_configs.folder_ignore_regex_list,
-            *filesync_configs.file_ignore_regex_list
-        ], show_default=True), click.prompt('rename_dict', type=dict, default={
-            **filesync_configs.folder_rename_dict,
-            **filesync_configs.file_rename_dict
-        }, show_default=True)).to_dict()
-        configs_filesync_connector.write_file(json.dumps(filesync_configs_dict_dict, indent=2).encode(), configs_path)
+        configs.prompt_modify()
+        configs_dict_dict[configs_key] = configs.to_dict()
+        configs_filesync_connector.write_file(json.dumps(configs_dict_dict, indent=2).encode(), configs_path)
         sys.exit(0)
 
     if is_delete:
         if configs_key == 'default':
             prints.red(f"Can't delete `{configs_key}` configuration")
             sys.exit(1)
-        del filesync_configs_dict_dict[configs_key]
-        configs_filesync_connector.write_file(json.dumps(filesync_configs_dict_dict, indent=2).encode(), configs_path)
+        del configs_dict_dict[configs_key]
+        configs_filesync_connector.write_file(json.dumps(configs_dict_dict, indent=2).encode(), configs_path)
         sys.exit(0)
 
-    # TODO DSE la lista non è ordinata
-    filesync_configs_list = [filesync_configs]
+    configs_list = [
+        configs
+    ]
     if is_all_configs:
-        filesync_configs_list = [FilesyncConfigs.from_dict(filesync_configs_dict) for filesync_configs_dict in filesync_configs_dict_dict.values()]
+        configs_list = sorted([Configs.from_dict(configs_dict) for configs_dict in configs_dict_dict.values()], lambda configs: configs.order)
 
-    for filesync_configs in filesync_configs_list:
+    for configs in configs_list:
 
         source_filesync_connector = None
-        if filesync_configs.is_source_ftp:
-            source_filesync_connector = FilesyncConnectorFtp(filesync_configs.source_path, click.prompt('source_ftp_host', type=str, default='', show_default=True), click.prompt('source_ftp_port', type=int, default=21, show_default=True), click.prompt('source_ftp_user', type=str, default='', show_default=True), click.prompt('source_ftp_password', type=str, default='', show_default=True, hide_input=True))
+        if configs.is_source_ftp:
+            source_filesync_connector = FtpConnector(configs.source_path, click.prompt('source_ftp_host', type=str, default='', show_default=True), click.prompt('source_ftp_port', type=int, default=21, show_default=True), click.prompt('source_ftp_user', type=str, default='', show_default=True), click.prompt('source_ftp_password', type=str, default='', show_default=True, hide_input=True))
         else:
-            source_filesync_connector = FilesyncConnectorLocal(filesync_configs.source_path)
+            source_filesync_connector = LocalConnector(configs.source_path)
         source_path = source_filesync_connector.root_path
         if not source_filesync_connector.is_entry(source_path):
             prints.red(f"`{source_path}` not found")
@@ -109,10 +105,10 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
         print(f"`source_path` is `{source_path}`")
 
         destination_filesync_connector = None
-        if filesync_configs.is_source_ftp:
-            source_filesync_connector = FilesyncConnectorFtp(filesync_configs.destination_path, click.prompt('destination_ftp_host', type=str, default='', show_default=True), click.prompt('destination_ftp_port', type=int, default=21, show_default=True), click.prompt('destination_ftp_user', type=str, default='', show_default=True), click.prompt('destination_ftp_password', type=str, default='', show_default=True, hide_input=True))
+        if configs.is_source_ftp:
+            source_filesync_connector = FtpConnector(configs.destination_path, click.prompt('destination_ftp_host', type=str, default='', show_default=True), click.prompt('destination_ftp_port', type=int, default=21, show_default=True), click.prompt('destination_ftp_user', type=str, default='', show_default=True), click.prompt('destination_ftp_password', type=str, default='', show_default=True, hide_input=True))
         else:
-            destination_filesync_connector = FilesyncConnectorLocal(filesync_configs.destination_path)
+            destination_filesync_connector = LocalConnector(configs.destination_path)
         destination_path = destination_filesync_connector.root_path
         if not destination_filesync_connector.is_entry(destination_path):
             prints.red(f"`{destination_path}` not found")
@@ -122,13 +118,13 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
             continue
         print(f"`destination_path` is `{destination_path}`")
 
-        filesync_configs.folder_rename_dict = {source_filesync_connector.resolve_path(key): destination_filesync_connector.resolve_path(value) for key, value in filesync_configs.folder_rename_dict.items()}
-        filesync_configs.file_rename_dict = {source_filesync_connector.resolve_path(key): destination_filesync_connector.resolve_path(value) for key, value in filesync_configs.file_rename_dict.items()}
+        configs.folder_rename_dict = {source_filesync_connector.resolve_path(key): destination_filesync_connector.resolve_path(value) for key, value in configs.folder_rename_dict.items()}
+        configs.file_rename_dict = {source_filesync_connector.resolve_path(key): destination_filesync_connector.resolve_path(value) for key, value in configs.file_rename_dict.items()}
 
         if source_path != destination_path:
-            utils.sync(source_filesync_connector, source_path, destination_filesync_connector, destination_path, filesync_configs)
+            utils.sync(source_filesync_connector, source_path, destination_filesync_connector, destination_path, configs)
 
-        for key, value in filesync_configs.folder_rename_dict.items():
+        for key, value in configs.folder_rename_dict.items():
             prints.purple(f" || {key} -> {value}")
             if not source_filesync_connector.is_entry(key):
                 prints.red(f"`{key}` not found")
@@ -142,9 +138,9 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
                 prints.red(f"`{value}` is not a folder")
                 continue
             prints.purple(f" ?? {value}")
-            utils.sync(source_filesync_connector, key, destination_filesync_connector, value, filesync_configs)
+            utils.sync(source_filesync_connector, key, destination_filesync_connector, value, configs)
 
-        for key, value in filesync_configs.file_rename_dict.items():
+        for key, value in configs.file_rename_dict.items():
             prints.purple(f" || {key} -> {value}")
             if destination_filesync_connector.is_entry(value):
                 if destination_filesync_connector.is_folder(value):
@@ -156,10 +152,10 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
                 elif not destination_filesync_connector.is_folder(folder_path):
                     prints.red(f"`{folder_path}` is not a folder")
                     continue
-                if destination_filesync_connector.m_time(key) > destination_filesync_connector.m_time(value):
+                if destination_filesync_connector.get_m_time(key) > destination_filesync_connector.get_m_time(value):
                     prints.green(f" -> {value}")
                     destination_filesync_connector.write_file(destination_filesync_connector.read_file(key), value)
-                elif filesync_configs.is_dual and destination_filesync_connector.m_time(value) > destination_filesync_connector.m_time(key):
+                elif configs.is_dual and destination_filesync_connector.get_m_time(value) > destination_filesync_connector.get_m_time(key):
                     prints.blue(f" <- {value}")
                     destination_filesync_connector.write_file(destination_filesync_connector.read_file(value), key)
             else:
