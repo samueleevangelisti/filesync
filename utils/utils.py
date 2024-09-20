@@ -61,6 +61,7 @@ def sync(source_filesync_connector, source_path, destination_filesync_connector,
                 prints.red(f" -- {remove_folder_path}")
                 destination_filesync_connector.remove_folder(remove_folder_path)
 
+    # TODO DSE le funzioni in questo repo dovrebbero essere gestite con i continue e non con if-then-else
     for file in source_file_list:
         source_file_path = source_filesync_connector.resolve_path(source_path, file)
         is_ignore = False
@@ -73,7 +74,7 @@ def sync(source_filesync_connector, source_path, destination_filesync_connector,
                 del filesync_configs.file_rename_dict[source_file_path]
                 prints.purple(f" || {source_file_path} -> {destination_file_path}")
             if file in destination_file_list:
-                if source_filesync_connector.get_m_time(source_file_path) > destination_filesync_connector.get_m_time(destination_file_path):
+                if filesync_configs.is_force or source_filesync_connector.get_m_time(source_file_path) > destination_filesync_connector.get_m_time(destination_file_path):
                     prints.green(f" -> {destination_file_path}")
                     destination_filesync_connector.write_file(source_filesync_connector.read_file(source_file_path), destination_file_path)
                 elif filesync_configs.is_dual and destination_filesync_connector.get_m_time(destination_file_path) > source_filesync_connector.get_m_time(source_file_path):

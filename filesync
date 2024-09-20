@@ -86,7 +86,7 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
         configs
     ]
     if is_all_configs:
-        configs_list = sorted([Configs.from_dict(configs_dict) for configs_dict in configs_dict_dict.values()], lambda configs: configs.order)
+        configs_list = sorted([Configs.from_dict(configs_dict) for configs_dict in configs_dict_dict.values()], key=lambda configs: configs.order)
 
     for configs in configs_list:
 
@@ -106,7 +106,7 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
 
         destination_filesync_connector = None
         if configs.is_source_ftp:
-            source_filesync_connector = FtpConnector(configs.destination_path, click.prompt('destination_ftp_host', type=str, default='', show_default=True), click.prompt('destination_ftp_port', type=int, default=21, show_default=True), click.prompt('destination_ftp_user', type=str, default='', show_default=True), click.prompt('destination_ftp_password', type=str, default='', show_default=True, hide_input=True))
+            destination_filesync_connector = FtpConnector(configs.destination_path, click.prompt('destination_ftp_host', type=str, default='', show_default=True), click.prompt('destination_ftp_port', type=int, default=21, show_default=True), click.prompt('destination_ftp_user', type=str, default='', show_default=True), click.prompt('destination_ftp_password', type=str, default='', show_default=True, hide_input=True))
         else:
             destination_filesync_connector = LocalConnector(configs.destination_path)
         destination_path = destination_filesync_connector.root_path
@@ -152,7 +152,7 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
                 elif not destination_filesync_connector.is_folder(folder_path):
                     prints.red(f"`{folder_path}` is not a folder")
                     continue
-                if destination_filesync_connector.get_m_time(key) > destination_filesync_connector.get_m_time(value):
+                if configs.is_force or destination_filesync_connector.get_m_time(key) > destination_filesync_connector.get_m_time(value):
                     prints.green(f" -> {value}")
                     destination_filesync_connector.write_file(destination_filesync_connector.read_file(key), value)
                 elif configs.is_dual and destination_filesync_connector.get_m_time(value) > destination_filesync_connector.get_m_time(key):
