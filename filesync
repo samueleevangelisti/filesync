@@ -125,6 +125,9 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
         if source_path != destination_path:
             utils.sync(source_filesync_connector, source_path, destination_filesync_connector, destination_path, configs, is_force)
 
+        configs.folder_ignore_regex_list = []
+        configs.file_ignore_regex_list = []
+
         for key, value in configs.folder_rename_dict.items():
             prints.purple(f" || {key} -> {value}")
             if not source_filesync_connector.is_entry(key):
