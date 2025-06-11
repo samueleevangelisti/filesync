@@ -57,7 +57,7 @@ class Connector:
         -------
         str
         '''
-        return paths.folder_path(self.resolve_path(*entry_path_list))
+        return paths.get_folder_path(self.resolve_path(*entry_path_list))
 
 
 
@@ -74,7 +74,7 @@ class Connector:
         -------
         str
         '''
-        return paths.file_name(self.resolve_path(*entry_path_list))
+        return paths.get_file_name(self.resolve_path(*entry_path_list))
 
 
 

@@ -61,16 +61,19 @@ class Configs:
         self.file_ignore_regex_list = []
         for ignore_regex in ignore_regex_list:
             if ignore_regex[-1] == '/':
+                if ignore_regex[-2] == '\\':
+                    self.folder_ignore_regex_list.append(ignore_regex[:-2])
+                    continue
                 self.folder_ignore_regex_list.append(ignore_regex[:-1])
-            else:
-                self.file_ignore_regex_list.append(ignore_regex)
+                continue
+            self.file_ignore_regex_list.append(ignore_regex)
         self.folder_rename_dict = {}
         self.file_rename_dict = {}
         for key, value in rename_dict.items():
             if key[-1] == '/':
                 self.folder_rename_dict[key[:-1]] = value[:-1]
-            else:
-                self.file_rename_dict[key] = value
+                continue
+            self.file_rename_dict[key] = value
 
 
 
