@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 '''
 filesync
 '''
@@ -146,6 +146,9 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
 
         for key, value in configs.file_rename_dict.items():
             prints.purple(f" || {key} -> {value}")
+            if not source_filesync_connector.is_entry(key):
+                prints.red(f"`{key}` not found")
+                continue
             if destination_filesync_connector.is_entry(value):
                 if destination_filesync_connector.is_folder(value):
                     prints.red(f"`{value}` is not a file")
@@ -159,12 +162,12 @@ def _main(is_init, is_new, is_modify, is_delete, is_all_configs, configs_key, ft
                 if destination_filesync_connector.get_m_time(key) > destination_filesync_connector.get_m_time(value) or configs.is_force or is_force:
                     prints.green(f" -> {value}")
                     destination_filesync_connector.write_file(destination_filesync_connector.read_file(key), value)
-                elif configs.is_dual and destination_filesync_connector.get_m_time(value) > destination_filesync_connector.get_m_time(key):
+                if destination_filesync_connector.get_m_time(value) > destination_filesync_connector.get_m_time(key) and configs.is_dual:
                     prints.blue(f" <- {value}")
                     destination_filesync_connector.write_file(destination_filesync_connector.read_file(value), key)
-            else:
-                prints.green(f" ++ {value}")
-                destination_filesync_connector.write_file(source_filesync_connector.read_file(key), value)
+                continue
+            prints.green(f" ++ {value}")
+            destination_filesync_connector.write_file(source_filesync_connector.read_file(key), value)
 
         source_filesync_connector.quit()
         destination_filesync_connector.quit()
