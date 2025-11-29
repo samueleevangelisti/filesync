@@ -87,6 +87,7 @@ class Configs:
         Configs
         '''
         return Configs(click.prompt('order', type=int, default=0, show_default=True), click.prompt('is_source_ftp', type=bool, default=False, show_default=True), click.prompt('source_path', type=str, default='.', show_default=True), click.prompt('is_destination_ftp', type=bool, default=False, show_default=True), click.prompt('destination_path', type=str, default='.', show_default=True), click.prompt('is_force', type=bool, default=False, show_default=True), click.prompt('is_delete', type=bool, default=True, show_default=True), click.prompt('is_dual', type=bool, default=False, show_default=True), click.prompt('ignore_regex_list', type=list, default=[
+            '.*\\.vscode\\/',
             '.*\\.git\\/',
             '.*\\_\\_pycache\\_\\_\\/',
             '.*filesync\\-configs\\.json',
